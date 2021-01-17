@@ -22,26 +22,26 @@ def load_image(name, color_key=None):
 class SpaceShip(pygame.sprite.Sprite):
     def __init__(self, image_name, *groups):
         super().__init__(*groups)
-        self.image = load_image(image_name, -1)
-        self.rect = self.image.get_rect()
+        self.image = pygame.transform.scale(load_image(image_name, -1), (100, 100))
+        self.rect = self.image.get_rect().move(self.image.get_rect().x, 500)
 
     def update(self, x):
-        self.rect.move(x, self.rect.y)
+        self.rect = self.rect.move(x - self.rect.x - 0.5 * self.rect.width, 0)
 
 
 class Enemies(pygame.sprite.Sprite):
     def __init__(self, image_name, *groups):
         super().__init__(*groups)
-        self.image = load_image(image_name, -1)
+        self.image = pygame.transform.scale(load_image(image_name, -1), (100, 100))
         self.rect = self.image.get_rect()
         self.counter = 1
         self.k = 1
 
     def update(self):
-        x, y = self.rect.x + self.k, self.rect.y
+        y = 0
         if not self.counter % 5:
-            y += 1
+            y = 1
             self.k = -self.k
             self.counter = 1
-        self.rect.move(x, y)
+        self.rect.move(self.k, y)
         self.counter += 1
