@@ -1,18 +1,15 @@
 import pygame
-from ships import SpaceShip, Enemies
+from ships import *
 
 
 def main():
-    size = 600, 600
+    size = 700, 700
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption('Space occupants')
     clock = pygame.time.Clock()
 
-    all_sprites = pygame.sprite.Group()
-    player_group = pygame.sprite.Group()
-    enemies = pygame.sprite.Group()
-
-    player = SpaceShip('main_character.png', all_sprites, player_group)
+    player = SpaceShip()
+    border = Border(0, 200, 700, 200)
 
     running = True
     while running:
@@ -21,7 +18,10 @@ def main():
                 running = False
             if event.type == pygame.MOUSEMOTION:
                 player.update(event.pos[0])
-        enemies.update()
+            if event.type == pygame.KEYDOWN:
+                player.fire()
+        bullets.update()
+        # enemies.update()
         screen.fill((0, 0, 0))
         all_sprites.draw(screen)
         pygame.display.flip()
