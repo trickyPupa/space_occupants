@@ -12,7 +12,6 @@ def load_image(name, color_key=None):
     try:
         image = pygame.image.load(fullname).convert()
     except pygame.error as message:
-        print('Cannot load image:', name)
         raise SystemExit(message)
 
     if color_key is not None:
@@ -38,22 +37,30 @@ class SpaceShip(pygame.sprite.Sprite):
         return b
 
 
-class Enemies(pygame.sprite.Sprite):
-    def __init__(self, image_name):
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, im):
         super().__init__(all_sprites, enemies)
-        self.image = pygame.transform.scale(load_image(image_name, -1), (100, 100))
-        self.rect = self.image.get_rect()
-        self.counter = 1
-        self.k = 1
+        self.image = pygame.transform.scale(load_image('enemy1.jpg', -1), (70, 50)) if im == 1 \
+            else pygame.transform.scale(load_image('enemy2.jpg', -1), (70, 70))
+        self.rect = self.image.get_rect().move(200, 200)
+        self.counter = 0
+        self.k = 5
+
+    def move(self):
+        if not self.counter % 120:
+            y = 0
+            if not self.counter % 360:
+                if not self.counter % 720:
+                    y = 5
+                    self.counter = 0
+                self.k = -self.k
+            self.rect = self.rect.move(self.k, y)
+        self.counter += 1
 
     def update(self):
-        y = 0
-        if not self.counter % 5:
-            y = 1
-            self.k = -self.k
-            self.counter = 1
-        self.rect.move(self.k, y)
-        self.counter += 1
+        if pygame.sprite.spritecollide(self, bullets, True):
+            self.kill()
+        self.move()
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -62,21 +69,22 @@ class Bullet(pygame.sprite.Sprite):
         self.image = load_image('bullet.jpg', -1)
         self.rect = self.image.get_rect().move(x - 3, y - 25)
         self.mask = pygame.mask.from_surface(self.image)
-        self.k = 0
 
     def update(self):
-        if self.k:
-            self.kill()
+        '''
         emen = pygame.sprite.spritecollideany(self, enemies)
-
-        if self.rect.y <= -46:
-            self.k = 1
+        if self.rect.y <= -46 or self.k:
+            self.kill()
         elif not emen:
             self.rect = self.rect.move(0, -5)
-            return None
         else:
             self.k = 1
-            return emen
+        return emen
+        '''
+        if self.rect.y <= -46:
+            self.kill()
+        else:
+            self.rect = self.rect.move(0, -3)
 
 
 class Border(pygame.sprite.Sprite):
