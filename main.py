@@ -1,29 +1,27 @@
-import pygame
 from ships import *
+from random import choice
 
 
 def main():
-    size = 700, 700
-    screen = pygame.display.set_mode(size)
+    screen = pygame.display.set_mode(SIZE)
     pygame.display.set_caption('Space occupants')
     clock = pygame.time.Clock()
 
     player = SpaceShip()
-    enem = Enemy(1)
-    # enem.rect.move(200, 200)
-    # border = Border(0, 200, 700, 200)
+    border = Border(100, 250, 500)
+    for i in range(4):
+        for j in range(10):
+            a = Enemy(choice([0, 1]))
+            a.rect = a.rect.move(50 + 70 * j, 100 + 70 * i)
 
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.MOUSEMOTION:
-                player.update(event.pos[0])
             if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
                 player.fire()
-        bullets.update()
-        enemies.update()
+        all_sprites.update()
 
         screen.fill((100, 100, 100))
         all_sprites.draw(screen)

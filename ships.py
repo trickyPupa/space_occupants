@@ -6,6 +6,8 @@ player_group = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
 
+SIZE = (800, 700)
+
 
 def load_image(name, color_key=None):
     fullname = os.path.join('data', name)
@@ -26,11 +28,14 @@ def load_image(name, color_key=None):
 class SpaceShip(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__(all_sprites, player_group)
-        self.image = pygame.transform.scale(load_image('main_character.png', -1), (100, 100))
-        self.rect = self.image.get_rect().move(self.image.get_rect().x, 500)
+        self.image = pygame.transform.scale(load_image('main_character.png', -1), (84, 65))
+        self.rect = self.image.get_rect().move(self.image.get_rect().x, 600)
 
-    def update(self, x):
-        self.rect = self.rect.move(x - self.rect.x - 0.5 * self.rect.width, 0)
+    def update(self):
+        x = pygame.mouse.get_pos()[0]
+        x2 = x - self.rect.x - 0.5 * self.rect.width
+        if 0 <= self.rect.x + x2 and self.rect.x + x2 + self.rect.width <= SIZE[0]:
+            self.rect = self.rect.move(x2, 0)
 
     def fire(self):
         b = Bullet(self.rect.x + self.rect.width // 2, self.rect.y)
@@ -40,27 +45,28 @@ class SpaceShip(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, im):
         super().__init__(all_sprites, enemies)
-        self.image = pygame.transform.scale(load_image('enemy1.jpg', -1), (70, 50)) if im == 1 \
-            else pygame.transform.scale(load_image('enemy2.jpg', -1), (70, 70))
-        self.rect = self.image.get_rect().move(200, 200)
-        self.counter = 0
+        self.image = pygame.transform.scale(load_image('enemy1.jpg', -1), (50, 50)) if im == 1 \
+            else pygame.transform.scale(load_image('enemy2.jpg', -1), (50, 50))
+        self.rect = self.image.get_rect()
+        self.counter = 1
         self.k = 5
 
-    def move(self):
-        if not self.counter % 120:
-            y = 0
-            if not self.counter % 360:
-                if not self.counter % 720:
-                    y = 5
-                    self.counter = 0
-                self.k = -self.k
-            self.rect = self.rect.move(self.k, y)
+    def moving(self):
+        if not self.counter % 900:
+            self.counter = 1
+            self.rect = self.rect.move(0, 5)
+            self.k = -self.k
+        elif not self.counter % 500:
+            self.k = -self.k
+            self.rect = self.rect.move(self.k, 0)
+        elif not self.counter % 100:
+            self.rect = self.rect.move(self.k, 0)
         self.counter += 1
 
     def update(self):
         if pygame.sprite.spritecollide(self, bullets, True):
             self.kill()
-        self.move()
+        self.moving()
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -68,19 +74,8 @@ class Bullet(pygame.sprite.Sprite):
         super().__init__(all_sprites, bullets)
         self.image = load_image('bullet.jpg', -1)
         self.rect = self.image.get_rect().move(x - 3, y - 25)
-        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
-        '''
-        emen = pygame.sprite.spritecollideany(self, enemies)
-        if self.rect.y <= -46 or self.k:
-            self.kill()
-        elif not emen:
-            self.rect = self.rect.move(0, -5)
-        else:
-            self.k = 1
-        return emen
-        '''
         if self.rect.y <= -46:
             self.kill()
         else:
@@ -88,8 +83,15 @@ class Bullet(pygame.sprite.Sprite):
 
 
 class Border(pygame.sprite.Sprite):
-    def __init__(self, x1, y1, x2, y2):
+    def __init__(self, x1, x2, y):
         super().__init__(all_sprites, enemies)
-        self.image = pygame.Surface([x2 - x1, 1])
+        self.image = pygame.Surface([x2 - x1, 10])
         self.image.fill((255, 255, 255))
-        self.rect = pygame.Rect(x1, y1, x2 - x1, 1)
+        self.rect = pygame.Rect(x1, y, x2 - x1, 10)
+        self.v = 1
+
+    def update(self):
+        pygame.sprite.spritecollide(self, bullets, True)
+        self.rect = self.rect.move(self.v, 0)
+        if self.rect.x == 0 or self.rect.x + self.rect.width == SIZE[0]:
+            self.v = -self.v
