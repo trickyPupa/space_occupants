@@ -36,6 +36,12 @@ def my_choices(seq, k):
     return res
 
 
+def delete(*groups):
+    for group in groups:
+        for i in group.sprites():
+            i.kill()
+
+
 class MySprite(pygame.sprite.Sprite):
     def __init__(self, size, *groups):
         super().__init__(all_sprites, *groups)
@@ -46,28 +52,31 @@ class SpaceShip(MySprite):
     def __init__(self, size):
         super().__init__(size, player_group)
         self.image = pygame.transform.scale(load_image('main_character.png', -1), (84, 65))
-        self.rect = self.image.get_rect().move(self.image.get_rect().x, self.size[1] - 100)
+        self.rect = self.image.get_rect().move(self.image.get_rect().x, self.size[1] - 150)
+        self.lives = 3
 
     def update(self):
         x = pygame.mouse.get_pos()[0]
         x2 = x - self.rect.x - 0.5 * self.rect.width
         if 0 <= self.rect.x + x2 and self.rect.x + x2 + self.rect.width <= self.size[0]:
             self.rect = self.rect.move(x2, 0)
-        if pygame.sprite.spritecollide(self, bulletsb, True):
-            pass
+        if pygame.sprite.spritecollide(self, pygame.sprite.Group(*bulletsb.sprites(),
+                                                                 *enemies.sprites()), True):
+            self.lives -= 1
 
     def fire(self):
         Bullet(self.size, self.rect.x + self.rect.width // 2, self.rect.y, -3, bulletsa)
 
 
 class Enemy(MySprite):
-    def __init__(self, size, i):
+    def __init__(self, size, i, player):
         super().__init__(size, enemies)
         img = 'enemy1.jpg' if i else 'enemy2.jpg'
         self.image = pygame.transform.scale(load_image(img, -1), (50, 50))
         self.rect = self.image.get_rect()
         self.counter = 1
         self.k = 5
+        self.player = player
 
     def moving(self):
         if not pygame.sprite.spritecollideany(self, borders):
@@ -75,6 +84,7 @@ class Enemy(MySprite):
 
     def update(self):
         if self.rect.y == self.size[1]:
+            self.player.lives -= 1
             self.kill()
         if pygame.sprite.spritecollide(self, bulletsa, True):
             self.kill()
@@ -86,7 +96,7 @@ class Enemy(MySprite):
 class Bullet(MySprite):
     def __init__(self, size, x, y, v, b):
         super().__init__(size, b)
-        self.image = load_image('bullet.jpg', -1)
+        self.image = load_image('bullet2.png', -1)
         self.v = v
         self.rect = self.image.get_rect().move(x - 3, y + self.v * 10)
 
