@@ -5,6 +5,7 @@ from random import choice
 all_sprites = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
+# группы спрайтов для пуль игрока и вражеских пуль
 bulletsa = pygame.sprite.Group()
 bulletsb = pygame.sprite.Group()
 borders = pygame.sprite.Group()
@@ -26,6 +27,7 @@ def load_image(name, color_key=None):
     return image
 
 
+# фунция для случайного выбора позиций врага, не пересекая область около уже выбранных
 def my_choices(seq, k):
     s = list(seq)
     res = []
@@ -48,6 +50,7 @@ class MySprite(pygame.sprite.Sprite):
         self.size = size
 
 
+# класс корабля игрока
 class SpaceShip(MySprite):
     def __init__(self, size):
         super().__init__(size, player_group)
@@ -56,10 +59,12 @@ class SpaceShip(MySprite):
         self.lives = 3
 
     def update(self):
+        # корабль передвигается по оси x вместе с курсором
         x = pygame.mouse.get_pos()[0]
         x2 = x - self.rect.x - 0.5 * self.rect.width
         if 0 <= self.rect.x + x2 and self.rect.x + x2 + self.rect.width <= self.size[0]:
             self.rect = self.rect.move(x2, 0)
+        # пересечение с врагом или пулей отнимает 1 жизнь
         if pygame.sprite.spritecollide(self, pygame.sprite.Group(*bulletsb.sprites(),
                                                                  *enemies.sprites()), True):
             self.lives -= 1
@@ -68,6 +73,7 @@ class SpaceShip(MySprite):
         Bullet(self.size, self.rect.x + self.rect.width // 2, self.rect.y, -3, bulletsa)
 
 
+# монстры-враги
 class Enemy(MySprite):
     def __init__(self, size, i, player):
         super().__init__(size, enemies)
@@ -83,12 +89,15 @@ class Enemy(MySprite):
             self.rect = self.rect.move(0, 1)
 
     def update(self):
+        # при пересечении с пулей игрока или выходе за экран объект удаляется
         if self.rect.y == self.size[1]:
+            # жизнь вычитается, если враг дошел до края
             self.player.lives -= 1
             self.kill()
         if pygame.sprite.spritecollide(self, bulletsa, True):
             self.kill()
         if choice(range(0, 10000)) < 5:
+            # с небольшим шансом враг может выстрелить
             Bullet(self.size, self.rect.x + self.rect.width // 2, self.rect.y, 3, bulletsb)
         self.moving()
 
@@ -107,6 +116,7 @@ class Bullet(MySprite):
             self.rect = self.rect.move(0, self.v)
 
 
+# борты-укрытия
 class Border(MySprite):
     def __init__(self, size, x1, x2, y, v):
         super().__init__(size, borders)
